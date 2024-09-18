@@ -1,5 +1,6 @@
-import z from "zod";
+import { z } from "zod";
 
+// Schema cho đăng ký người dùng
 export const RegisterBody = z
 	.object({
 		name: z.string().trim().min(2).max(256),
@@ -7,7 +8,6 @@ export const RegisterBody = z
 		password: z.string().min(6).max(100),
 		confirmPassword: z.string().min(6).max(100),
 	})
-	.strict()
 	.superRefine(({ confirmPassword, password }, ctx) => {
 		if (confirmPassword !== password) {
 			ctx.addIssue({
@@ -17,4 +17,13 @@ export const RegisterBody = z
 			});
 		}
 	});
-export type RegisterBodyType = z.TypeOf<typeof RegisterBody>;
+
+export type RegisterBodyType = z.infer<typeof RegisterBody>;
+
+// Schema cho đăng nhập
+export const LoginBody = z.object({
+	email: z.string().email(),
+	password: z.string().min(6).max(100),
+});
+
+export type LoginBodyType = z.infer<typeof LoginBody>;
