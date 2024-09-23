@@ -13,9 +13,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { LoginBody, LoginBodyType } from "@/schemaValidations/auth.schema";
+import { useToast } from "@/hooks/use-toast";
 import envConfig from "@/app/config";
 
 const LoginForm = () => {
+	const { toast } = useToast();
 	const form = useForm<LoginBodyType>({
 		resolver: zodResolver(LoginBody),
 		defaultValues: {
@@ -26,7 +28,7 @@ const LoginForm = () => {
 	async function onSubmit(values: LoginBodyType) {
 		console.log("Form values: ", values); // Kiểm tra giá trị form trước khi gửi
 		try {
-			const result = await fetch(
+			const response = await fetch(
 				`${envConfig.NEXT_PUBLIC_API_ENDPOINT}/Account/Login`,
 				{
 					body: JSON.stringify(values),
@@ -35,10 +37,28 @@ const LoginForm = () => {
 					},
 					method: "POST",
 				}
-			).then((res) => res.json());
-			console.log(result);
+			);
+
+			const result = await response.json(); // Lưu trữ kết quả JSON từ response
+
+			if (result.token && !result.token.isError) {
+				toast({
+					description: result.token.message, // show message success
+				});
+			} else {
+				toast({
+					title: "Error",
+					description: result.token?.message || "Login failed", // show message fail
+					variant: "destructive",
+				});
+			}
 		} catch (error) {
 			console.error("Error during login: ", error);
+			toast({
+				title: "Error",
+				description: "An error occurred during login", // show message fail
+				variant: "destructive",
+			});
 		}
 	}
 
